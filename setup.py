@@ -4,13 +4,21 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 setup(
-    name='pgpackup',
+    name='pgbackup',
     version='0.1.0',
-    author='ARic Wilisch',
-    author_email='awilisch@gmail.com',
-    description='A utility for backing up PostgreSQL databases',
+    author='Aric WIlisch',
+    author_email='awilisch@net-collective.net',
+    description='A utility for backing up postgresql databases',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/your_username/pgbackup',
-    packages=find_packages('src')
+    url='http://github.com',
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    install_requires=['boto3'],
+    python_requires='>=3.6',
+    entry_points={
+        'console_scripts': [
+            'pgbackup=pgbackup.cli:main'
+        ]
+    }
 )

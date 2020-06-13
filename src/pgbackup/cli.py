@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from argparse import Action, ArgumentParser
 
 class DriverAction(Action):
@@ -10,14 +8,34 @@ class DriverAction(Action):
 
 def create_parser():
     parser = ArgumentParser(description="""
-    Back up PostgresSQL databases locally or to AWS S3.
+    Back up Postgresql databases locally or to S3
     """)
 
-    parser.add_argument("url", help="URL of the atabase to backup")
-    parser.add_argument("--driver",
-            help="how & where to store backup",
-            nargs=2, # Number of arguments
+    parser.add_argument("url", help="URL of the database to backup")
+    parser.add_argument("--driver", "-d",
+            help="How & where to store backup",
+            nargs=2,
+            metavar=("DRIVER", "DESTINATION"),
             action=DriverAction,
             required=True)
-    
+
     return parser
+
+def main():
+    import boto3
+    import time
+    from pgbackup import pgdump, storage
+
+    args = create_parser().parse_args()
+    dump = pgdump.dump(args.url)
+    if args.driver == 's3':
+        client = boto3.client('s3')
+        timestamp = time.strftime("%Y-%m-%dT%H:%M", time.localtime())
+        file_name = pgdump.dump_file_name(args.url, timestamp)
+        print(f"Backing up Database to {args.destination} in S3 as {file_name}")
+        storage.s3(client, dump.stdout, args.destination, file_name)
+    else:
+        outfile = open(args.destination, 'wb')
+        print(f"Backing database locally to {outfile.name}")
+        storage.local(dump.stdout, outfile)
+
